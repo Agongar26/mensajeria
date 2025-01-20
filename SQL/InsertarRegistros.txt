@@ -1,0 +1,15 @@
+-- Usar la base de datos
+USE usuarios;
+
+-- Insertar varios registros en la tabla 'usuario'
+INSERT INTO usuario (alias, password, nombre, apellidos, fecha_nacimiento)
+VALUES
+    ('Alexgg', '$2y$10$9.I2vPWwHaOUJ8cSbdis0uGJOG8RjsOjXoZejkukdj1MzWPFbK/ui', 'Alejandro', 'González García', '2005-01-26'), -- Contraseña: Usuario123
+    ('jdoe', '$2y$10$9B3djhRxkAcfizYpdUoz2uBxBowzshZEFXx3MvkoMvlztMB21eQuu', 'John', 'Doe', '1990-05-15'), -- Contraseña: JohnDoe123
+    ('mgarcia', '$2y$10$1gjx7zPWR/zjGvoo1wKzWuwY5qB9g/o4FoGdFo0SERWJf5M.6Aipy', 'Maria', 'Garcia', '1985-11-20'),	-- Contraseña: MGarcia123
+    ('lrodriguez', '$2y$10$Rn.Sp2oi8X2Q97R8BOHmxuj2YFI7Z5scW9Zb6gS8AHFfpaBSKglmG', 'Luis', 'Rodriguez', '1992-03-10'),		-- Contraseña: LRodriguez123
+    ('swhite', '$2y$10$8NVch1zL5Fc/Qq9VHS/1/OGngoHP7Gk5TfnYFP7ikeGnQXg7TD8JK', 'Sarah', 'White', '1999-07-25'),	-- Contraseña: SWhite123
+    ('klee', '$2y$10$hq41qduBJnz7GhNzopqswesjKMMYhf7KyT5bU63Q2q6V8aioB4hXS', 'Kim', 'Lee', '1988-12-05');	-- Contraseña: Klee1234
+
+-- Confirmación
+SELECT * FROM usuario;
