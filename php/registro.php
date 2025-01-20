@@ -5,7 +5,7 @@ session_start(); // Inicia la sesión
 $servername = "localhost";
 $username = "root";
 $password = "";
-$dbname = "Usuarios";
+$dbname = "mensajeriaweb";  // Cambiar a la nueva base de datos "mensajeriaweb"
 
 // Crear conexión
 $conn = new mysqli($servername, $username, $password, $dbname);
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_SESSION['alias'])) {
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
             // Insertar el nuevo usuario
-            $sql2 = "INSERT INTO Usuario (alias, password, nombre, apellidos, fecha_nacimiento) VALUES (?, ?, ?, ?, ?)";    //Realizar el insert con los datos
+            $sql2 = "INSERT INTO usuario (alias, password, nombre, apellidos, fecha_nacimiento) VALUES (?, ?, ?, ?, ?)";    //Realizar el insert con los datos
             $stmt2 = $conn->prepare($sql2);     //Preparar la consulta
 
             if ($stmt2) {

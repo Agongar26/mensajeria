@@ -7,13 +7,38 @@ if (!isset($_SESSION['alias'])) {
     exit();
 }
 
-// Simulación de datos de ejemplo
-$friends = [
-    ["id" => 1, "name" => "Juan"],
-    ["id" => 2, "name" => "María"],
-    ["id" => 3, "name" => "Carlos"],
-];
+// Conectar a la base de datos
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "mensajeriaweb"; // Nombre de la base de datos
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Comprobar si hay algún error en la conexión
+if ($conn->connect_error) {
+    die("Conexión fallida: " . $conn->connect_error);
+}
+
+// Obtener lista de amigos del usuario
+$aliasUsuario = $_SESSION['alias'];
+$friendsQuery = "SELECT u.alias, u.nombre FROM Usuario u 
+                 INNER JOIN EsAmigo ea ON (ea.alias_Usuario = u.alias OR ea.alias_Amigo = u.alias)
+                 WHERE (ea.alias_Usuario = ? OR ea.alias_Amigo = ?) AND u.alias != ?";
+$stmt = $conn->prepare($friendsQuery);
+$stmt->bind_param("sss", $aliasUsuario, $aliasUsuario, $aliasUsuario);
+$stmt->execute();
+$result = $stmt->get_result();
+$friends = [];
+while ($row = $result->fetch_assoc()) {
+    $friends[] = $row;
+}
+
+// Gestión de solicitudes
 $selectedFriendId = isset($_GET['friend_id']) ? $_GET['friend_id'] : null;
+
+// Cerrar la conexión
+$stmt->close();
+$conn->close();
 ?>
 
 <!DOCTYPE html>
