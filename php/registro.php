@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_SESSION['alias'])) {
                     $_SESSION['nombre'] = $name;    //Guardar nombre del usuario
                     $_SESSION['apellido'] = $apellidos;     //Guardar los apellidos del usuario
                     $_SESSION['fecha_nacimiento'] = $date;  //Guardar la fecha de nacimineto del usuario
-
+                    header("Location: index.php");  //Redirigir a la página principal después del inicio de sesión exitoso
                     $error = "Registro exitoso.";
                 } else {
                     $error = "Error al registrar al usuario. Inténtalo más tarde.";
@@ -75,7 +75,7 @@ $conn->close();     //Cerrar la conexión con la base de datos
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -102,58 +102,47 @@ $conn->close();     //Cerrar la conexión con la base de datos
     </nav>
 
     <div class="container d-flex justify-content-center align-items-center vh-100">
-        <?php if (!isset($_SESSION['alias'])): ?>
-            <form id="Formulario" method="post">
-                <h1>Formulario de Registro</h1>
-                <br>
+        <form id="Formulario" method="post">
+            <h1>Formulario de Registro</h1>
+            <br>
 
-                <div class="input-group mb-3">
-                    <span class="input-group-text">@</span>
-                    <input type="text" class="form-control" name="alias" placeholder="Alias" maxlength="15" required>
-                </div>
-
-                <div class="input-group mb-3">
-                    <input type="password" class="form-control" name="password" placeholder="Contraseña (mínimo 8 caracteres)" minlength="8" required>
-                    <span class="input-group-text"><ion-icon name="lock-closed-outline"></ion-icon></span>
-                </div>
-
-                <div class="input-group mb-3">
-                    <input type="text" class="form-control" name="name" placeholder="Nombre" minlength="3" maxlength="50" required>
-                    <span class="input-group-text"><ion-icon name="person-outline"></ion-icon></span>
-                </div>
-
-                <div class="input-group mb-3">
-                    <input type="text" class="form-control" name="apellidos" placeholder="Apellidos" minlength="3" maxlength="100" required>
-                    <span class="input-group-text"><ion-icon name="person-outline"></ion-icon></span>
-                </div>
-
-                <div class="input-group mb-3">
-                    <input type="date" class="form-control" name="date" required>
-                </div>
-
-                <div class="d-flex justify-content-end mt-3">
-                    <button type="reset" class="btn btn-secondary me-2">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Registrarse</button>
-                </div>
-
-                <div class="input-group justify-content-end">
-                    <p>Ya tiene una cuenta? <a href="login.php">Iniciar sesión</a></p>
-                </div>
-
-                <?php if (!empty($error)): ?>
-                    <p class="text-danger mt-3"><?php echo htmlspecialchars($error); ?></p>
-                <?php endif; ?>
-            </form>
-        <?php else: ?>
-            <div class="text-center">
-                <h1>Bienvenido, <?php echo htmlspecialchars($_SESSION['alias']); ?>!</h1>
-                <br>
-                <h3>Resumen del formulario</h3>
-                <p><strong>Nombre:</strong> <?php echo htmlspecialchars($_SESSION['nombre']); ?></p>
-                <p><strong>Apellidos:</strong> <?php echo htmlspecialchars($_SESSION['apellido']); ?></p>
-                <p><strong>Fecha de nacimiento:</strong> <?php echo htmlspecialchars($_SESSION['fecha_nacimiento']); ?></p>
+            <div class="input-group mb-3">
+                <span class="input-group-text">@</span>
+                <input type="text" class="form-control" name="alias" placeholder="Alias" maxlength="15" required>
             </div>
-        <?php endif; ?>
+
+            <div class="input-group mb-3">
+                <input type="password" class="form-control" name="password" placeholder="Contraseña (mínimo 8 caracteres)" minlength="8" required>
+                <span class="input-group-text"><ion-icon name="lock-closed-outline"></ion-icon></span>
+            </div>
+
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" name="name" placeholder="Nombre" minlength="3" maxlength="50" required>
+                <span class="input-group-text"><ion-icon name="person-outline"></ion-icon></span>
+            </div>
+
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" name="apellidos" placeholder="Apellidos" minlength="3" maxlength="100" required>
+                <span class="input-group-text"><ion-icon name="person-outline"></ion-icon></span>
+            </div>
+
+            <div class="input-group mb-3">
+                <input type="date" class="form-control" name="date" required>
+            </div>
+
+            <div class="d-flex justify-content-end mt-3">
+                <button type="reset" class="btn btn-secondary me-2">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Registrarse</button>
+            </div>
+
+            <div class="input-group justify-content-end">
+                <p>Ya tiene una cuenta? <a href="login.php">Iniciar sesión</a></p>
+            </div>
+
+            <?php if (!empty($error)): ?>
+                <p class="text-danger mt-3"><?php echo htmlspecialchars($error); ?></p>
+            <?php endif; ?>
+        </form>
     </div>
 
     <footer class="bg-dark text-white text-center py-3">
