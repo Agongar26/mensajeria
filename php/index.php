@@ -3,7 +3,7 @@ session_start();
 
 // Verificar si el usuario ha iniciado sesión
 if (!isset($_SESSION['alias'])) {
-    //header("Location: login.php"); // Redirigir al inicio de sesión si no está autenticado
+    header("Location: login.php"); // Redirigir al inicio de sesión si no está autenticado
     exit();
 }
 
@@ -44,12 +44,51 @@ $selectedFriendId = isset($_GET['friend_id']) ? $_GET['friend_id'] : null;
             <?php endif; ?>
         </div>
     </nav>
+
+    <!-- Off canvas enviar solicitud amistad -->
+    <div class="offcanvas offcanvas-start text-bg-dark" id="send_request">
+        <div class="offcanvas-header">
+            <h1 class="offcanvas-title">Enviar solicitud amistad</h1>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body">
+            <input type="text" name="BuscarAmigos" id="BuscarAmigos">
+            <button class="btn btn-success" type="button">Enviar solicitud</button>
+        </div>
+    </div>
+
+    <!-- Off canvas ver solicitud amistad -->
+    <div class="offcanvas offcanvas-start text-bg-dark" id="aprove_request">
+        <div class="offcanvas-header">
+            <h1 class="offcanvas-title">Solicitudes recibidas</h1>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <hr style="border-top: 10px solid white;">
+        <div class="offcanvas-body">
+            <p>Jose <button class="btn btn-success" type="button">aprovar</button> <button class="btn btn-danger" type="button">rechazar</button></p> 
+        </div>
+    </div>
     
     <div class="container-fluid vh-100 d-flex flex-column">
-    <div class="row flex-grow-1">
+        <div class="row flex-grow-1">
         <!-- Lista de amigos -->
         <div class="col-3 bg-light border-end overflow-auto">
-            <h5 class="text-center py-3 border-bottom">Lista de amigos</h5>
+            <div class="d-flex align-items-center">
+                <h5 class="text-center py-3 border-bottom flex-grow-1">Lista de amigos</h5>
+                <a href="personal_information.php"><img src="../img/config.webp" style="width: 50px;"></a>
+            </div>
+
+            <!-- Botones solicitudes (Por centrar)-->
+            <div class="text-center">
+                <button class="btn btn-primary btn-sm m-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#send_request">
+                    Enviar solicitud
+                </button>
+                <button class="btn btn-secondary btn-sm m-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#aprove_request">
+                    Ver solicitudes
+                </button>
+                
+            </div>
+
             <ul class="list-group list-group-flush">
                 <?php foreach ($friends as $friend): ?>
                     <li class="list-group-item">
