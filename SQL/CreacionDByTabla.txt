@@ -1,17 +1,37 @@
--- Eliminar la base de datos si ya existe
-DROP DATABASE IF EXISTS usuarios;
+-- Eliminar la DB si existe
+DROP DATABASE IF EXISTS MensajeriaWeb;
 
 -- Crear la base de datos
-CREATE DATABASE usuarios;
+CREATE DATABASE MensajeriaWeb;
+USE MensajeriaWeb;
 
--- Usar la base de datos creada
-USE usuarios;
+-- Tabla Usuario
+CREATE TABLE Usuario (
+    alias VARCHAR(50) NOT NULL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    apellidos VARCHAR(150) NOT NULL,
+    fecha_Nacimiento DATE NOT NULL,
+    password VARCHAR(255) NOT NULL
+);
 
--- Crear la tabla 'usuario'
-CREATE TABLE usuario (
-    alias VARCHAR(15),
-    password VARCHAR(255) NOT NULL PRIMARY KEY,
-    nombre VARCHAR(50) NOT NULL,
-    apellidos VARCHAR(100) NOT NULL,
-    fecha_nacimiento DATE NOT NULL
+-- Tabla Mensaje
+CREATE TABLE Mensaje (
+    id_Mensaje INT AUTO_INCREMENT PRIMARY KEY,
+    emisor VARCHAR(50) NOT NULL,
+    receptor VARCHAR(50) NOT NULL,
+    mensaje TEXT NOT NULL,
+    fechaHora DATETIME NOT NULL,
+    leido BOOLEAN DEFAULT FALSE,
+    CONSTRAINT FK_Emisor FOREIGN KEY (emisor) REFERENCES Usuario(alias) ON DELETE CASCADE,
+    CONSTRAINT FK_Receptor FOREIGN KEY (receptor) REFERENCES Usuario(alias) ON DELETE CASCADE
+);
+
+-- Tabla EsAmigo
+CREATE TABLE EsAmigo (
+    alias_Usuario VARCHAR(50) NOT NULL,
+    alias_Amigo VARCHAR(50) NOT NULL,
+    estado ENUM('Espera', 'Aceptada', 'Rechazada') DEFAULT 'Espera',
+    PRIMARY KEY (alias_Usuario, alias_Amigo),
+    CONSTRAINT FK_AliasUsuario FOREIGN KEY (alias_Usuario) REFERENCES Usuario(alias) ON DELETE CASCADE,
+    CONSTRAINT FK_AliasAmigo FOREIGN KEY (alias_Amigo) REFERENCES Usuario(alias) ON DELETE CASCADE
 );

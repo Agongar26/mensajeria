@@ -29,11 +29,9 @@ $fecha_nacimiento = htmlspecialchars($_SESSION['fecha_nacimiento']);
 <body>
     
     <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
-        <div class="container-fluid ">
-          <a class="navbar-brand" href="#">
+        <div class="d-flex align-items-center justify-content-left">
             <img src="../img/Logo.jpeg" alt="Logo" style="width:40px;" class="rounded-pill">
-          </a>
-          <p><a href="index.php">Volver</a></p>
+            <p class="mb-0"><a class="text-white text-decoration-none" href="index.php">Volver</a></p>
         </div>
         <div class="d-flex align-items-center justify-content-end w-100">
             <?php if (isset($_SESSION['alias'])): ?>
@@ -45,6 +43,18 @@ $fecha_nacimiento = htmlspecialchars($_SESSION['fecha_nacimiento']);
         </div>
     </nav>
 
+    <div class="offcanvas offcanvas-top" id="demo">
+        <div class="offcanvas-header">
+            <h1 class="offcanvas-title">¿Está seguro que desea eliminar la cuenta?</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body">
+            <p>Esta acción no se puede deshacer</p>
+            <button class="btn btn-success" type="button">Si</button>
+            <button class="btn btn-danger" type="button" data-bs-dismiss="offcanvas">No</button>
+        </div>
+    </div>
+
     <div class="container d-flex justify-content-center align-items-center vh-100">
         <div class="text-center">
             <h1>Usuario: <?php echo htmlspecialchars($_SESSION['alias']); ?></h1>
@@ -53,6 +63,9 @@ $fecha_nacimiento = htmlspecialchars($_SESSION['fecha_nacimiento']);
             <p><strong>Nombre: </strong><?php echo htmlspecialchars($_SESSION['nombre']);?></p>
             <p><strong>Apellidos: </strong><?php echo htmlspecialchars($_SESSION['apellido']);?></p>
             <p><strong>Fecha de nacimiento: </strong><?php echo htmlspecialchars($_SESSION['fecha_nacimiento']);?></p>
+            <button class="btn btn-danger" type="button" data-bs-toggle="offcanvas" data-bs-target="#demo">
+                Eliminar cuenta
+            </button>
         </div>
     </div>
 

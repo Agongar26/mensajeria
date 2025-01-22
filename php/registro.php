@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_SESSION['alias'])) {
 
     if ($alias && $password && $name && $apellidos && $date) {
         // Verificar si el alias ya está registrado
-        $sql = "SELECT * FROM Usuario WHERE alias = ?"; //Hacer consulta para obtener todos los datos del usuario con el alias especificado
+        $sql = "SELECT * FROM usuario WHERE alias = ?"; //Hacer consulta para obtener todos los datos del usuario con el alias especificado
         $stmt = $conn->prepare($sql);   //Preparamos la consulta
         $stmt->bind_param("s", $alias);     //Se asocian los parámetros
         $stmt->execute();   //Se ejecuta la consulta

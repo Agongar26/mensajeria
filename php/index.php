@@ -50,15 +50,14 @@ $conn->close();
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> <!-- bootstrap -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script> <!-- ioicon -->
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script> <!-- ioicon -->
+    <script src="../js/funciones.js"></script> <!-- JavaScript para el manejo de las solicitudes-->
     <title>Aplicación de Mensajería</title>
 </head>
 <body>
 
     <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
         <div class="container-fluid">
-          <a class="navbar-brand" href="#">
             <img src="../img/Logo.jpeg" alt="Logo" style="width:40px;" class="rounded-pill">
-          </a>
         </div>
         <div class="d-flex align-items-center justify-content-end w-100">
             <?php if (isset($_SESSION['alias'])): ?>
@@ -77,8 +76,16 @@ $conn->close();
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
         </div>
         <div class="offcanvas-body">
-            <input type="text" name="BuscarAmigos" id="BuscarAmigos">
-            <button class="btn btn-success" type="button">Enviar solicitud</button>
+            <form action="">
+                <input type="text" name="friend_alias" id="BuscarAmigos" placeholder="Alias del amigo" required>
+                <button class="btn btn-success" type="submit" id="send_request">Enviar solicitud</button>
+                <div id="responseMessage" class="mt-3"></div>
+            </form>
+            <?php if (isset($message)): ?>
+                <div class="mt-3 alert alert-<?= htmlspecialchars($messageType) ?>">
+                    <?= htmlspecialchars($message) ?>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -103,7 +110,7 @@ $conn->close();
                 <a href="personal_information.php"><img src="../img/config.webp" style="width: 50px;"></a>
             </div>
 
-            <!-- Botones solicitudes (Por centrar)-->
+            <!-- Botones solicitudes -->
             <div class="text-center">
                 <button class="btn btn-primary btn-sm m-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#send_request">
                     Enviar solicitud
@@ -111,7 +118,6 @@ $conn->close();
                 <button class="btn btn-secondary btn-sm m-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#aprove_request">
                     Ver solicitudes
                 </button>
-                
             </div>
 
             <ul class="list-group list-group-flush">
