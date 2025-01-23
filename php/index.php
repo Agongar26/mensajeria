@@ -21,20 +21,35 @@ if ($conn->connect_error) {
 
 // Obtener lista de amigos del usuario
 $aliasUsuario = $_SESSION['alias'];
-$friendsQuery = "SELECT u.alias, u.nombre FROM Usuario u 
-                 INNER JOIN EsAmigo ea ON (ea.alias_Usuario = u.alias OR ea.alias_Amigo = u.alias)
-                 WHERE (ea.alias_Usuario = ? OR ea.alias_Amigo = ?) AND u.alias != ?";
-$stmt = $conn->prepare($friendsQuery);
-$stmt->bind_param("sss", $aliasUsuario, $aliasUsuario, $aliasUsuario);
+$solicitudQuery = "SELECT u.nombre, a.alias_Usuario, a.alias_Amigo
+                FROM esamigo a, usuario u
+                WHERE a.alias_Amigo = ? AND a.estado = 'Espera'
+                GROUP BY a.alias_Amigo";
+$stmt = $conn->prepare($solicitudQuery);
+$stmt->bind_param("s", $aliasUsuario);
 $stmt->execute();
 $result = $stmt->get_result();
-$friends = [];
+$solicitudes = [];
 while ($row = $result->fetch_assoc()) {
-    $friends[] = $row;
+    $solicitudes[] = $row;
+}
+
+// Obtener lista de amigos del usuario
+$amigosQuery = "SELECT a.alias_Usuario, a.alias_Amigo
+                FROM esamigo a
+                WHERE (a.alias_Amigo = ? OR a.alias_Usuario = ?) AND a.estado = 'Aceptada'
+                GROUP BY a.alias_Amigo";
+$stmt2 = $conn->prepare($amigosQuery);
+$stmt2->bind_param("ss", $aliasUsuario, $aliasUsuario);
+$stmt2->execute();
+$result2 = $stmt2->get_result();
+$amigos = [];
+while ($row2 = $result2->fetch_assoc()) {
+    $amigos[] = $row2;
 }
 
 // Gestión de solicitudes
-$selectedFriendId = isset($_GET['friend_id']) ? $_GET['friend_id'] : null;
+$selectedFriendAlias = isset($_GET['alias_Usuario']) ? $_GET['alias_Usuario'] : null;
 
 // Cerrar la conexión
 $stmt->close();
@@ -76,7 +91,7 @@ $conn->close();
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
         </div>
         <div class="offcanvas-body">
-            <form action="">
+            <form action="enviar_solicitud.php" method="POST">
                 <input type="text" name="friend_alias" id="BuscarAmigos" placeholder="Alias del amigo" required>
                 <button class="btn btn-success" type="submit" id="send_request">Enviar solicitud</button>
                 <div id="responseMessage" class="mt-3"></div>
@@ -97,7 +112,25 @@ $conn->close();
         </div>
         <hr style="border-top: 10px solid white;">
         <div class="offcanvas-body">
-            <p>Jose <button class="btn btn-success" type="button">aprovar</button> <button class="btn btn-danger" type="button">rechazar</button></p> 
+            <form action="procesar_solicitud.php" method="POST">
+                <ul class="text-align-start">
+                    <?php foreach ($solicitudes as $solicitud): ?>
+                        <li class="list-group-item">
+                            <p>
+                                <?= htmlspecialchars($solicitud['nombre']) ?> (ID: <?= htmlspecialchars($solicitud['alias_Usuario']) ?>)
+                                <!-- Alias del usuario y del amigo como campos ocultos -->
+                                <input type="hidden" name="alias_Usuario" value="<?= htmlspecialchars($solicitud['alias_Usuario']) ?>">
+                                <input type="hidden" name="alias_Amigo" value="<?= htmlspecialchars($solicitud['alias_Amigo']) ?>">
+
+                                <!-- Botones para aprobar o rechazar -->
+                                <button class="btn btn-success" type="submit" name="action" value="aprobar">Aprobar</button>
+                                <button class="btn btn-danger" type="submit" name="action" value="rechazar">Rechazar</button>
+                            </p>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </form>
+            <p>Jose <button class="btn btn-success" type="button">aprobar</button> <button class="btn btn-danger" type="button">rechazar</button></p> 
         </div>
     </div>
     
@@ -121,23 +154,37 @@ $conn->close();
             </div>
 
             <ul class="list-group list-group-flush">
-                <?php foreach ($friends as $friend): ?>
+                <?php foreach ($amigos as $amigo): ?>
+                    <?php if($amigo['alias_Usuario'] == $_SESSION['alias']): ?>
                     <li class="list-group-item">
-                        <a href="?friend_id=<?= $friend['id'] ?>" class="text-decoration-none text-dark">
-                            <?= htmlspecialchars($friend['name']) ?>
+                        <a href="?friend_ALias=<?= htmlspecialchars($amigo['alias_Amigo']) ?>" class="text-decoration-none text-dark">
+                            <?= htmlspecialchars($amigo['alias_Amigo']) ?>
                         </a>
+                        <!-- <?/*php echo '<pre>';
+                            print_r($amigo);
+                            echo '</pre>';*/?> -->
                     </li>
+                    <?php else: ?>
+                    <li class="list-group-item">
+                        <a href="?friend_ALias=<?= htmlspecialchars($amigo['alias_Usuario']) ?>" class="text-decoration-none text-dark">
+                            <?= htmlspecialchars($amigo['alias_Usuario']) ?>
+                        </a>
+                        <!--<?php/* echo '<pre>';
+                            print_r($amigo);
+                            echo '</pre>'*/;?>-->
+                    </li>
+                    <?php endif;?>
                 <?php endforeach; ?>
             </ul>
         </div>
 
         <!-- Ventana de chat -->
         <div class="col-9 d-flex flex-column">
-            <?php if ($selectedFriendId): ?>
+            <?php if ($selectedFriendAlias): 'UsuarioNuevo'?>
                 <!-- Encabezado del chat -->
-                <div class="bg-primary text-white text-center py-2">
-                    Conversación con <?= htmlspecialchars($friends[$selectedFriendId - 1]['name']) ?>
-                </div>
+                <!--<div class="bg-primary text-white text-center py-2">
+                    Conversación con <?= htmlspecialchars($solicitudes[$selectedFriendAlias]['nombre']) ?>
+                </div>-->
 
                 <!-- Mensajes -->
                 <div class="flex-grow-1 bg-light overflow-auto p-3">
@@ -145,7 +192,7 @@ $conn->close();
                     <div class="mb-3">
                         <div class="text-start">
                             <span class="badge bg-secondary"> 
-                                <?= htmlspecialchars($friends[$selectedFriendId - 1]['name']) ?> 
+                                <?= htmlspecialchars($solicitudes[$selectedFriendAlias]['alias_Amigo']) ?> 
                             </span>
                             <p class="bg-white border rounded p-2 d-inline-block mt-1">
                                 Hola, ¿cómo estás?

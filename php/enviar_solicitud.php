@@ -3,7 +3,8 @@ session_start();
 
 // Verificar si el usuario ha iniciado sesión
 if (!isset($_SESSION['alias'])) {
-    header("Location: login.php"); // Redirigir al inicio de sesión si no está autenticado
+    $_SESSION['alert'] = 'Usuario no autenticado.';
+    header("Location: index.php");
     exit();
 }
 
@@ -16,54 +17,83 @@ $conn = new mysqli($servername, $username, $password, $dbname);
 
 // Comprobar si hay algún error en la conexión
 if ($conn->connect_error) {
-    die("Conexión fallida: " . $conn->connect_error);
+    $_SESSION['alert'] = 'Error al conectar con la base de datos.';
+    header("Location: index.php");
+    exit();
 }
 
-// Variables para mensajes
-$message = null;
-$messageType = null;
-
-// Procesar el envío del formulario
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_request'])) {
-    $friendAlias = trim($_POST['friend_alias']);
-    $userAlias = $_SESSION['alias'];
-
-    // Validar que no sea el mismo usuario
-    if ($friendAlias === $userAlias) {
-        $message = "No puedes enviarte una solicitud a ti mismo.";
-        $messageType = "warning";
-    } else {
-        // Verificar si ya existe una solicitud o relación
-        $queryCheck = "SELECT * FROM EsAmigo WHERE 
-            (alias_Usuario = ? AND alias_Amigo = ?) OR (alias_Usuario = ? AND alias_Amigo = ?)";
-        $stmtCheck = $conn->prepare($queryCheck);
-        $stmtCheck->bind_param("ssss", $userAlias, $friendAlias, $friendAlias, $userAlias);
-        $stmtCheck->execute();
-        $resultCheck = $stmtCheck->get_result();
-
-        if ($resultCheck->num_rows > 0) {
-            $message = "Ya existe una solicitud o relación con este usuario.";
-            $messageType = "warning";
-        } else {
-            // Insertar la nueva solicitud
-            $queryInsert = "INSERT INTO EsAmigo (alias_Usuario, alias_Amigo, estado) VALUES (?, ?, 'Espera')";
-            $stmtInsert = $conn->prepare($queryInsert);
-            $stmtInsert->bind_param("ss", $userAlias, $friendAlias);
-
-            if ($stmtInsert->execute()) {
-                $message = "Solicitud enviada correctamente.";
-                $messageType = "success";
-            } else {
-                $message = "Error al enviar la solicitud. Inténtalo más tarde.";
-                $messageType = "danger";
-            }
-            $stmtInsert->close();
-        }
-        $stmtCheck->close();
-    }
+// Verificar si se envió el alias del amigo
+if (!isset($_POST['friend_alias']) || empty(trim($_POST['friend_alias']))) {
+    $_SESSION['alert'] = 'Alias del amigo no proporcionado.';
+    header("Location: index.php");
+    exit();
 }
 
+// Obtener datos del usuario
+$aliasUsuario = $_SESSION['alias'];
+$aliasAmigo = trim($_POST['friend_alias']);
+
+// Validar que no se envíe una solicitud a sí mismo
+if ($aliasUsuario === $aliasAmigo) {
+    $_SESSION['alert'] = 'No puedes enviarte una solicitud a ti mismo.';
+    header("Location: index.php");
+    exit();
+}
+
+// Comprobar si ya existe una solicitud en cualquier dirección
+$checkQuery = "
+    SELECT COUNT(*) AS total 
+    FROM esamigo 
+    WHERE 
+        (alias_Usuario = ? AND alias_Amigo = ?) 
+        OR 
+        (alias_Usuario = ? AND alias_Amigo = ?)
+";
+$stmt = $conn->prepare($checkQuery);
+if (!$stmt) {
+    $_SESSION['alert'] = 'Error al preparar la consulta.';
+    header("Location: index.php");
+    exit();
+}
+
+$stmt->bind_param("ssss", $aliasUsuario, $aliasAmigo, $aliasAmigo, $aliasUsuario);
+$stmt->execute();
+$result = $stmt->get_result();
+$row = $result->fetch_assoc();
+
+if ($row['total'] > 0) {
+    // Ya existe una solicitud de amistad entre los dos usuarios
+    $_SESSION['alert'] = 'Ya existe una solicitud de amistad entre estos usuarios.';
+    $stmt->close();
+    $conn->close();
+    header("Location: index.php");
+    exit();
+}
+
+// Insertar la solicitud en la base de datos
+$insertQuery = "INSERT INTO esamigo (alias_Usuario, alias_Amigo, estado) VALUES (?, ?, 'Espera')";
+$stmt = $conn->prepare($insertQuery);
+if (!$stmt) {
+    $_SESSION['alert'] = 'Error al preparar la consulta.';
+    header("Location: index.php");
+    exit();
+}
+
+$stmt->bind_param("ss", $aliasUsuario, $aliasAmigo);
+
+if ($stmt->execute()) {
+    $_SESSION['alert'] = 'Solicitud enviada con éxito.';
+} else {
+    $_SESSION['alert'] = 'Error al enviar la solicitud.';
+}
+
+// Cerrar la conexión
+$stmt->close();
 $conn->close();
+
+// Redirigir a index.php con el mensaje
+header("Location: index.php");
+exit();
 ?>
 
 <!DOCTYPE html>
@@ -71,40 +101,9 @@ $conn->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"> <!-- bootstrap -->
-    <title>Aplicación de Mensajería</title>
+    <meta http-equiv="refresh" content="0;url=index.php">
+    <title>Enviar solicitud</title>
 </head>
-<body>
-
-    <!-- Off canvas enviar solicitud amistad -->
-    <div class="offcanvas offcanvas-start text-bg-dark <?= ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_request'])) ? 'show' : '' ?>" 
-         tabindex="-1" 
-         id="send_request" 
-         aria-labelledby="offcanvasLabel" 
-         style="<?= ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_request'])) ? 'visibility: visible;' : '' ?>">
-        <div class="offcanvas-header">
-            <h1 class="offcanvas-title" id="offcanvasLabel">Enviar solicitud amistad</h1>
-            <a href="index.php" class="btn-close btn-close-white" aria-label="Close"></a>
-        </div>
-        <div class="offcanvas-body">
-            <form action="" method="POST">
-                <input 
-                    type="text" 
-                    name="friend_alias" 
-                    id="BuscarAmigos" 
-                    placeholder="Alias del amigo" 
-                    class="form-control mb-3" 
-                    required>
-                <button class="btn btn-success" type="submit" name="send_request">Enviar solicitud</button>
-            </form>
-            <?php if (isset($message)): ?>
-                <div class="mt-3 alert alert-<?= htmlspecialchars($messageType) ?>">
-                    <?= htmlspecialchars($message) ?>
-                </div>
-            <?php endif; ?>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> <!-- Bootstrap -->
-</body>
+<body> 
+</body> 
 </html>
