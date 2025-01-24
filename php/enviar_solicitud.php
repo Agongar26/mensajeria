@@ -23,7 +23,7 @@ if ($conn->connect_error) {
 }
 
 // Verificar si se envió el alias del amigo
-if (!isset($_POST['friend_alias']) || empty(trim($_POST['friend_alias']))) {
+if (!isset($_POST['alias_Amigo']) || empty(trim($_POST['alias_Amigo']))) {
     $_SESSION['alert'] = 'Alias del amigo no proporcionado.';
     header("Location: index.php");
     exit();
@@ -31,7 +31,7 @@ if (!isset($_POST['friend_alias']) || empty(trim($_POST['friend_alias']))) {
 
 // Obtener datos del usuario
 $aliasUsuario = $_SESSION['alias'];
-$aliasAmigo = trim($_POST['friend_alias']);
+$aliasAmigo = trim($_POST['alias_Amigo']);
 
 // Validar que no se envíe una solicitud a sí mismo
 if ($aliasUsuario === $aliasAmigo) {

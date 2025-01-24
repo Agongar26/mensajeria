@@ -26,42 +26,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['alias_Usuario'], $_PO
     $aliasUsuario = $_POST['alias_Usuario'];
     $action = $_POST['action'];
 
-    if ($action !== 'rechazar') {
-        // Determinar el nuevo estado según la acción
-        $nuevoEstado == 'Aceptada';
+    // Determinar el nuevo estado según la acción
+    $nuevoEstado = ($action === 'aprobar') ? 'Aceptada' : 'Rechazada';
 
-        // Actualizar el estado en la base de datos
-        $updateQuery = "UPDATE esamigo 
-                        SET estado = ? 
-                        WHERE alias_Usuario = ? AND alias_Amigo = ?";
-        $stmt = $conn->prepare($updateQuery);
-        $stmt->bind_param("sss", $nuevoEstado, $aliasUsuario, $aliasAmigo);
+    // Actualizar el estado en la base de datos
+    $updateQuery = "UPDATE esamigo 
+                    SET estado = ? 
+                    WHERE alias_Usuario = ? AND alias_Amigo = ?";
+    $stmt = $conn->prepare($updateQuery);
+    $stmt->bind_param("sss", $nuevoEstado, $aliasUsuario, $aliasAmigo);
 
-        if ($stmt->execute()) {
-            // Redirigir con un mensaje de éxito
-            $_SESSION['mensaje'] = "Solicitud actualizada correctamente.";
-        } else {
-            // Redirigir con un mensaje de error
-            $_SESSION['mensaje'] = "Error al procesar la solicitud.";
-        }
-    }
-    else {
-        // Determinar el nuevo estado según la acción
-        //$nuevoEstado = ($action === 'aprobar') ? 'Aceptada';
-
-        // Actualizar el estado en la base de datos
-        $updateQuery = "DELETE FROM esamigo 
-                        WHERE alias_Usuario = ? AND alias_Amigo = ?";
-                        $stmt->bind_param("ss", $aliasUsuario, $aliasAmigo);
-        $stmt = $conn->prepare($updateQuery);
-
-        if ($stmt->execute()) {
-            // Redirigir con un mensaje de éxito
-            $_SESSION['mensaje'] = "Solicitud actualizada correctamente.";
-        } else {
-            // Redirigir con un mensaje de error
-            $_SESSION['mensaje'] = "Error al procesar la solicitud.";
-        }
+    if ($stmt->execute()) {
+        // Redirigir con un mensaje de éxito
+        $_SESSION['mensaje'] = "Solicitud actualizada correctamente.";
+    } else {
+        // Redirigir con un mensaje de error
+        $_SESSION['mensaje'] = "Error al procesar la solicitud.";
     }
 
     // Cerrar la conexión

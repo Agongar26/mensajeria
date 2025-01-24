@@ -21,10 +21,10 @@ if ($conn->connect_error) {
 
 // Obtener lista de amigos del usuario
 $aliasUsuario = $_SESSION['alias'];
-$solicitudQuery = "SELECT u.nombre, a.alias_Usuario, a.alias_Amigo
-                FROM esamigo a, usuario u
+$solicitudQuery = "SELECT a.alias_Usuario, a.alias_Amigo
+                FROM esamigo a
                 WHERE a.alias_Amigo = ? AND a.estado = 'Espera'
-                GROUP BY a.alias_Amigo";
+                GROUP BY a.alias_Usuario";
 $stmt = $conn->prepare($solicitudQuery);
 $stmt->bind_param("s", $aliasUsuario);
 $stmt->execute();
@@ -38,7 +38,7 @@ while ($row = $result->fetch_assoc()) {
 $amigosQuery = "SELECT a.alias_Usuario, a.alias_Amigo
                 FROM esamigo a
                 WHERE (a.alias_Amigo = ? OR a.alias_Usuario = ?) AND a.estado = 'Aceptada'
-                GROUP BY a.alias_Amigo";
+                ";
 $stmt2 = $conn->prepare($amigosQuery);
 $stmt2->bind_param("ss", $aliasUsuario, $aliasUsuario);
 $stmt2->execute();
@@ -50,6 +50,18 @@ while ($row2 = $result2->fetch_assoc()) {
 
 // Gestión de solicitudes
 $selectedFriendAlias = isset($_GET['alias_Usuario']) ? $_GET['alias_Usuario'] : null;
+
+ // Obtener mensajes entre el usuario y el amigo seleccionado
+ $chatQuery = "SELECT emisor, receptor, mensaje, fechaHora
+ FROM mensaje
+ WHERE (emisor = ? AND receptor = ?)
+    OR (emisor = ? AND receptor = ?)
+ ORDER BY fechaHora ASC";
+$stmt3 = $conn->prepare($chatQuery);
+$stmt3->bind_param("ssss", $aliasUsuario, $selectedFriendAlias, $selectedFriendAlias, $aliasUsuario);
+$stmt3->execute();
+$chatResult = $stmt3->get_result();
+$mensajes = $chatResult->fetch_all(MYSQLI_ASSOC);
 
 // Cerrar la conexión
 $stmt->close();
@@ -92,7 +104,7 @@ $conn->close();
         </div>
         <div class="offcanvas-body">
             <form action="enviar_solicitud.php" method="POST">
-                <input type="text" name="friend_alias" id="BuscarAmigos" placeholder="Alias del amigo" required>
+                <input type="text" name="alias_Amigo" id="BuscarAmigos" placeholder="Alias del amigo" required>
                 <button class="btn btn-success" type="submit" id="send_request">Enviar solicitud</button>
                 <div id="responseMessage" class="mt-3"></div>
             </form>
@@ -117,7 +129,8 @@ $conn->close();
                     <?php foreach ($solicitudes as $solicitud): ?>
                         <li class="list-group-item">
                             <p>
-                                <?= htmlspecialchars($solicitud['nombre']) ?> (ID: <?= htmlspecialchars($solicitud['alias_Usuario']) ?>)
+                                <!-- Mostrar alias solicitante de la solicitud -->
+                                <?= htmlspecialchars($solicitud['alias_Usuario']) ?>
                                 <!-- Alias del usuario y del amigo como campos ocultos -->
                                 <input type="hidden" name="alias_Usuario" value="<?= htmlspecialchars($solicitud['alias_Usuario']) ?>">
                                 <input type="hidden" name="alias_Amigo" value="<?= htmlspecialchars($solicitud['alias_Amigo']) ?>">
@@ -130,7 +143,6 @@ $conn->close();
                     <?php endforeach; ?>
                 </ul>
             </form>
-            <p>Jose <button class="btn btn-success" type="button">aprobar</button> <button class="btn btn-danger" type="button">rechazar</button></p> 
         </div>
     </div>
     
@@ -145,36 +157,51 @@ $conn->close();
 
             <!-- Botones solicitudes -->
             <div class="text-center">
-                <button class="btn btn-primary btn-sm m-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#send_request">
-                    Enviar solicitud
-                </button>
-                <button class="btn btn-secondary btn-sm m-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#aprove_request">
-                    Ver solicitudes
-                </button>
+                <button class="btn btn-primary btn-sm m-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#send_request">Enviar solicitud</button>
+                <button class="btn btn-secondary btn-sm m-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#aprove_request">Ver solicitudes</button>
+
+                <!-- Mostrar cantidad de solicitudes de amistad recibidas -->
+                <?php if(count($solicitudes) == 0):?>                
+                    <p id="mostrar_solicitudes_pendientes"></p>
+                <?php elseif(count($solicitudes) == 1):?>
+                    <p id="mostrar_solicitudes_pendientes">Tienes 1 solicitud nueva</p>
+                <?php elseif(count($solicitudes) > 1):?>
+                    <p id="mostrar_solicitudes_pendientes">Tienes <?php print_r(count($solicitudes))?> solicitudes nuevas</p>
+                <?php endif;?>
             </div>
 
             <ul class="list-group list-group-flush">
-                <?php foreach ($amigos as $amigo): ?>
-                    <?php if($amigo['alias_Usuario'] == $_SESSION['alias']): ?>
-                    <li class="list-group-item">
-                        <a href="?friend_ALias=<?= htmlspecialchars($amigo['alias_Amigo']) ?>" class="text-decoration-none text-dark">
-                            <?= htmlspecialchars($amigo['alias_Amigo']) ?>
-                        </a>
-                        <!-- <?/*php echo '<pre>';
-                            print_r($amigo);
-                            echo '</pre>';*/?> -->
-                    </li>
-                    <?php else: ?>
-                    <li class="list-group-item">
-                        <a href="?friend_ALias=<?= htmlspecialchars($amigo['alias_Usuario']) ?>" class="text-decoration-none text-dark">
-                            <?= htmlspecialchars($amigo['alias_Usuario']) ?>
-                        </a>
-                        <!--<?php/* echo '<pre>';
-                            print_r($amigo);
-                            echo '</pre>'*/;?>-->
-                    </li>
-                    <?php endif;?>
-                <?php endforeach; ?>
+                <form action="procesar_solicitud.php" method="POST">
+                    <?php foreach ($amigos as $amigo): ?>
+                        <?php if($amigo['alias_Usuario'] == $_SESSION['alias']): ?>
+                        <li class="list-group-item">
+                            <a href="?friend_ALias=<?= htmlspecialchars($amigo['alias_Amigo']) ?>" class="text-decoration-none text-dark"><?= htmlspecialchars($amigo['alias_Amigo']) ?></a>
+                            <!-- Alias del usuario y del amigo como campos ocultos -->
+                                <input type="hidden" name="alias_Usuario" value="<?= htmlspecialchars($amigo['alias_Usuario']) ?>">
+                                <input type="hidden" name="alias_Amigo" value="<?= htmlspecialchars($amigo['alias_Amigo']) ?>">
+
+                            <button class="btn btn-translucent" type="submit" name="action" value="rechazar"><ion-icon name="trash-outline" style="color: red;"></ion-icon></button> <!-- Botón transparente borrar -->
+                            
+                            <!-- <?/*php echo '<pre>';
+                                print_r($amigo);
+                                echo '</pre>';*/?> -->
+                        </li>
+                        <?php else : ?>
+                        <li class="list-group-item">
+                            <a href="?friend_ALias=<?= htmlspecialchars($amigo['alias_Usuario']) ?>" class="text-decoration-none text-dark"><?= htmlspecialchars($amigo['alias_Usuario']) ?></a>
+                            <!-- Alias del usuario y del amigo como campos ocultos -->
+                                <input type="hidden" name="alias_Usuario" value="<?= htmlspecialchars($amigo['alias_Usuario']) ?>">
+                                <input type="hidden" name="alias_Amigo" value="<?= htmlspecialchars($amigo['alias_Amigo']) ?>">
+
+                            <button class="btn btn-translucent" type="submit" name="action" value="rechazar"><ion-icon name="trash-outline" style="color: red;"></ion-icon></button> <!-- Botón transparente borrar -->
+                            
+                            <!--<?php/* echo '<pre>';
+                                print_r($amigo);
+                                echo '</pre>'*/;?>-->
+                        </li>
+                        <?php endif;?>
+                    <?php endforeach; ?>
+                </form>
             </ul>
         </div>
 
@@ -191,20 +218,14 @@ $conn->close();
                     <!-- Mensajes de ejemplo -->
                     <div class="mb-3">
                         <div class="text-start">
-                            <span class="badge bg-secondary"> 
-                                <?= htmlspecialchars($solicitudes[$selectedFriendAlias]['alias_Amigo']) ?> 
-                            </span>
-                            <p class="bg-white border rounded p-2 d-inline-block mt-1">
-                                Hola, ¿cómo estás?
-                            </p>
+                            <span class="badge bg-secondary"> <?= htmlspecialchars($solicitudes[$selectedFriendAlias]['alias_Amigo']) ?> </span>
+                            <p class="bg-white border rounded p-2 d-inline-block mt-1">Hola, ¿cómo estás?</p>
                         </div>
                     </div>
                     <div class="mb-3">
                         <div class="text-end">
                             <span class="badge bg-primary">Tú</span>
-                            <p class="bg-primary text-white rounded p-2 d-inline-block mt-1">
-                                ¡Hola! Estoy bien, ¿y tú?
-                            </p>
+                            <p class="bg-primary text-white rounded p-2 d-inline-block mt-1">¡Hola! Estoy bien, ¿y tú?</p>
                         </div>
                     </div>
                 </div>
@@ -212,12 +233,7 @@ $conn->close();
                 <!-- Formulario para enviar mensajes -->
                 <div class="bg-light border-top p-3">
                     <form action="send_message.php" method="post" class="d-flex">
-                        <input 
-                            type="text" 
-                            name="message" 
-                            class="form-control me-2" 
-                            placeholder="Escribe un mensaje..."
-                            required>
+                        <input type="text" name="message" class="form-control me-2" placeholder="Escribe un mensaje..."required>
                         <button type="submit" class="btn btn-primary">Enviar</button>
                     </form>
                 </div>
