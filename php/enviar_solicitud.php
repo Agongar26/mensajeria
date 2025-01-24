@@ -31,7 +31,7 @@ if (!isset($_POST['alias_Amigo']) || empty(trim($_POST['alias_Amigo']))) {
 
 // Obtener datos del usuario
 $aliasUsuario = $_SESSION['alias'];
-$aliasAmigo = trim($_POST['alias_Amigo']);
+$aliasAmigo = strtoupper(trim($_POST['alias_Amigo']));
 
 // Validar que no se envíe una solicitud a sí mismo
 if ($aliasUsuario === $aliasAmigo) {

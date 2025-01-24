@@ -21,11 +21,11 @@ $error = "";
 // Procesar el formulario solo si se envía una solicitud POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_SESSION['alias'])) {
     // Obtener datos del formulario
-    $alias = trim($_POST['alias'] ?? '');
-    $password = trim($_POST['password'] ?? '');
-    $name = trim($_POST['name'] ?? '');
-    $apellidos = trim($_POST['apellidos'] ?? '');
-    $date = trim($_POST['date'] ?? '');
+    $alias = strtoupper(trim($_POST['alias'] ?? ''));
+    $password = ($_POST['password'] ?? '');
+    $name = strtoupper(trim($_POST['name'] ?? ''));
+    $apellidos = strtoupper(trim($_POST['apellidos'] ?? ''));
+    $date = ($_POST['date'] ?? '');
 
     if ($alias && $password && $name && $apellidos && $date) {
         // Verificar si el alias ya está registrado

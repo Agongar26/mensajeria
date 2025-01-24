@@ -124,25 +124,25 @@ $conn->close();
         </div>
         <hr style="border-top: 10px solid white;">
         <div class="offcanvas-body">
-            <form action="procesar_solicitud.php" method="POST">
-                <ul class="text-align-start">
-                    <?php foreach ($solicitudes as $solicitud): ?>
-                        <li class="list-group-item">
-                            <p>
-                                <!-- Mostrar alias solicitante de la solicitud -->
-                                <?= htmlspecialchars($solicitud['alias_Usuario']) ?>
-                                <!-- Alias del usuario y del amigo como campos ocultos -->
-                                <input type="hidden" name="alias_Usuario" value="<?= htmlspecialchars($solicitud['alias_Usuario']) ?>">
-                                <input type="hidden" name="alias_Amigo" value="<?= htmlspecialchars($solicitud['alias_Amigo']) ?>">
+            <ul class="text-align-start">
+                <?php foreach ($solicitudes as $solicitud): ?>
+                    <li class="list-group-item">
+                        <p>
+                        <form action="procesar_solicitud.php" method="POST">
+                            <!-- Mostrar alias solicitante de la solicitud -->
+                            <?= htmlspecialchars($solicitud['alias_Usuario']) ?>
+                            <!-- Alias del usuario y del amigo como campos ocultos -->
+                            <input type="hidden" name="alias_Usuario" value="<?= htmlspecialchars($solicitud['alias_Usuario']) ?>">
+                            <input type="hidden" name="alias_Amigo" value="<?= htmlspecialchars($solicitud['alias_Amigo']) ?>">
 
-                                <!-- Botones para aprobar o rechazar -->
-                                <button class="btn btn-success" type="submit" name="action" value="aprobar">Aprobar</button>
-                                <button class="btn btn-danger" type="submit" name="action" value="rechazar">Rechazar</button>
-                            </p>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
-            </form>
+                            <!-- Botones para aprobar o rechazar -->
+                            <button class="btn btn-success" type="submit" name="action" value="aprobar">Aprobar</button>
+                            <button class="btn btn-danger" type="submit" name="action" value="rechazar">Rechazar</button>
+                        </form>
+                        </p>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
         </div>
     </div>
     
