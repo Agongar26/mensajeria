@@ -48,23 +48,12 @@ while ($row2 = $result2->fetch_assoc()) {
     $amigos[] = $row2;
 }
 
-// Gestión de solicitudes
-$selectedFriendAlias = ""; // Inicializar la variable
+//Para recoger el id de los amigos
+$num = 1;
 
-// Verificar si se envió 'usuario_Elegido' desde JavaScript
-if (isset($_POST['usuario_Elegido'])) {
-    $selectedFriendAlias = $_POST['usuario_Elegido']; // Obtener el valor de 'usuario_Elegido'
-    echo "Alias actualizado a: " . htmlspecialchars($selectedFriendAlias); // Respuesta para depuración
-} else {
-    echo "No se recibió ningún alias con la clave 'usuario_Elegido'.<br>";
-}
-
-// Depuración para verificar el contenido de $_POST
-echo "<pre>";
-print_r($_POST); // Ver el contenido completo de $_POST
-echo "</pre>";
-
-print_r($_POST['usuario_Elegido']);
+// Simulación de datos de ejemplo
+$friends = [];
+$selectedFriendId = isset($_GET['alias_Amigo']) ? $_GET['alias_Amigo'] : null;
 
  // Obtener mensajes entre el usuario y el amigo seleccionado
  $chatQuery = "SELECT emisor, receptor, mensaje, fechaHora
@@ -185,11 +174,13 @@ $conn->close();
             </div>
 
             <ul class="list-group list-group-flush">
-                <form action="procesar_amigos.php" method="POST">
-                    <?php foreach ($amigos as $amigo): ?>
+                <form action="procesar_solicitud.php" method="POST">
+                    <?php 
+                    
+                    foreach ($amigos as $amigo): ?>
                         <?php if(strtoupper($amigo['alias_Usuario']) == strtoupper($_SESSION['alias'])): ?>
                         <li class="list-group-item">
-                            <a href="?alias_Amigo=<?= htmlspecialchars($amigo['alias_Amigo']) ?>" id="<?= htmlspecialchars($amigo['alias_Amigo']) ?>" class="text-decoration-none text-dark"><?= htmlspecialchars($amigo['alias_Amigo']) ?></a>
+                            <a href="?alias_Amigo=<?php echo $num ?>" id="<?php echo $num ?>" class="text-decoration-none text-dark"><?= htmlspecialchars($amigo['alias_Amigo']) ?></a>
                             <button id="<?php htmlspecialchars($amigo['alias_Amigo'])?>" class="btn btn-translucent text-black"><?php echo htmlspecialchars($amigo['alias_Amigo']) ?></button>
                             <!-- Alias del usuario y del amigo como campos ocultos -->
                             <input type="hidden" name="alias_Usuario" value="<?= htmlspecialchars($amigo['alias_Usuario']) ?>">
@@ -197,6 +188,8 @@ $conn->close();
 
                             <button class="btn btn-translucent" type="submit" name="action" value="rechazar"><ion-icon name="trash-outline" style="color: red;"></ion-icon></button> <!-- Botón transparente borrar -->
                             
+                            <?php array_push($friends, ['id' => $num, 'alias' => $amigo['alias_Amigo']]);?>
+
                             <!-- <?/*php echo '<pre>';
                                 print_r($amigo);
                                 echo '</pre>';*/?> -->
@@ -224,17 +217,20 @@ $conn->close();
                             $selectedFriendAlias = $amigo['alias_Usuario'];*/?>
                         </li>
                         <?php endif;?>
-                    <?php endforeach; ?>
+                    <?php 
+                    $num++;
+                    endforeach; ?>
                 </form>
             </ul>
+            <?php print_r($friends)?>
         </div>
 
         <!-- Ventana de chat -->
         <div class="col-9 d-flex flex-column">
-            <?php if ($selectedFriendAlias == $amigo['alias_Usuario'] || $selectedFriendAlias == $amigo['alias_Amigo']):?>
+            <?php if ($friends[$selectedFriendId-1]['alias'] != $_SESSION['alias']):?>
                 <!-- Encabezado del chat -->
                 <div class="bg-primary text-white text-center py-2">
-                    Conversación con <?= htmlspecialchars($selectedFriendAlias) ?>
+                    Conversación con <?php echo $friends[$selectedFriendId-1]['alias']?>
                 </div> 
 
                 <!-- Mensajes -->
@@ -242,7 +238,7 @@ $conn->close();
                     <!-- Mensajes de ejemplo -->
                     <div class="mb-3">
                         <div class="text-start">
-                            <span class="badge bg-secondary"> <?= htmlspecialchars($selectedFriendAlias) ?> </span>
+                            <span class="badge bg-secondary"> <?= htmlspecialchars($friends[$selectedFriendId-1]['alias']) ?> </span>
                             <p class="bg-white border rounded p-2 d-inline-block mt-1">Hola, ¿cómo estás?</p>
                         </div>
                     </div>
