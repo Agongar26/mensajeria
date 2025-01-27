@@ -49,7 +49,22 @@ while ($row2 = $result2->fetch_assoc()) {
 }
 
 // Gestión de solicitudes
-$selectedFriendAlias = isset($_GET['alias_Usuario']) ? $_GET['alias_Usuario'] : null;
+$selectedFriendAlias = ""; // Inicializar la variable
+
+// Verificar si se envió 'usuario_Elegido' desde JavaScript
+if (isset($_POST['usuario_Elegido'])) {
+    $selectedFriendAlias = $_POST['usuario_Elegido']; // Obtener el valor de 'usuario_Elegido'
+    echo "Alias actualizado a: " . htmlspecialchars($selectedFriendAlias); // Respuesta para depuración
+} else {
+    echo "No se recibió ningún alias con la clave 'usuario_Elegido'.<br>";
+}
+
+// Depuración para verificar el contenido de $_POST
+echo "<pre>";
+print_r($_POST); // Ver el contenido completo de $_POST
+echo "</pre>";
+
+print_r($_POST['usuario_Elegido']);
 
  // Obtener mensajes entre el usuario y el amigo seleccionado
  $chatQuery = "SELECT emisor, receptor, mensaje, fechaHora
@@ -77,7 +92,6 @@ $conn->close();
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> <!-- bootstrap -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script> <!-- ioicon -->
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script> <!-- ioicon -->
-    <script src="../js/funciones.js"></script> <!-- JavaScript para el manejo de las solicitudes-->
     <title>Aplicación de Mensajería</title>
 </head>
 <body>
@@ -171,33 +185,43 @@ $conn->close();
             </div>
 
             <ul class="list-group list-group-flush">
-                <form action="procesar_solicitud.php" method="POST">
+                <form action="procesar_amigos.php" method="POST">
                     <?php foreach ($amigos as $amigo): ?>
-                        <?php if($amigo['alias_Usuario'] == $_SESSION['alias']): ?>
+                        <?php if(strtoupper($amigo['alias_Usuario']) == strtoupper($_SESSION['alias'])): ?>
                         <li class="list-group-item">
-                            <a href="?friend_ALias=<?= htmlspecialchars($amigo['alias_Amigo']) ?>" class="text-decoration-none text-dark"><?= htmlspecialchars($amigo['alias_Amigo']) ?></a>
+                            <a href="?alias_Amigo=<?= htmlspecialchars($amigo['alias_Amigo']) ?>" id="<?= htmlspecialchars($amigo['alias_Amigo']) ?>" class="text-decoration-none text-dark"><?= htmlspecialchars($amigo['alias_Amigo']) ?></a>
+                            <button id="<?php htmlspecialchars($amigo['alias_Amigo'])?>" class="btn btn-translucent text-black"><?php echo htmlspecialchars($amigo['alias_Amigo']) ?></button>
                             <!-- Alias del usuario y del amigo como campos ocultos -->
-                                <input type="hidden" name="alias_Usuario" value="<?= htmlspecialchars($amigo['alias_Usuario']) ?>">
-                                <input type="hidden" name="alias_Amigo" value="<?= htmlspecialchars($amigo['alias_Amigo']) ?>">
+                            <input type="hidden" name="alias_Usuario" value="<?= htmlspecialchars($amigo['alias_Usuario']) ?>">
+                            <input type="hidden" name="alias_Amigo" value="<?= htmlspecialchars($amigo['alias_Amigo']) ?>">
 
                             <button class="btn btn-translucent" type="submit" name="action" value="rechazar"><ion-icon name="trash-outline" style="color: red;"></ion-icon></button> <!-- Botón transparente borrar -->
                             
                             <!-- <?/*php echo '<pre>';
                                 print_r($amigo);
                                 echo '</pre>';*/?> -->
+
+                            <!-- Igualar el alias del amigo al seleccionado -->
+                            <?/*php echo $amigo['alias_Amigo'];
+                            $selectedFriendAlias = $amigo['alias_Amigo'];*/?>
                         </li>
                         <?php else : ?>
                         <li class="list-group-item">
-                            <a href="?friend_ALias=<?= htmlspecialchars($amigo['alias_Usuario']) ?>" class="text-decoration-none text-dark"><?= htmlspecialchars($amigo['alias_Usuario']) ?></a>
+                            <a href="?alias_Amigo=<?= htmlspecialchars($amigo['alias_Usuario']) ?>" id="<?= htmlspecialchars($amigo['alias_Usuario']) ?>" class="text-decoration-none text-dark"><?= htmlspecialchars($amigo['alias_Usuario']) ?></a>
+                            <button id="<?php htmlspecialchars($amigo['alias_Usuario'])?>" class="btn btn-translucent text-black"><?php echo htmlspecialchars($amigo['alias_Usuario']) ?></button>
                             <!-- Alias del usuario y del amigo como campos ocultos -->
                                 <input type="hidden" name="alias_Usuario" value="<?= htmlspecialchars($amigo['alias_Usuario']) ?>">
                                 <input type="hidden" name="alias_Amigo" value="<?= htmlspecialchars($amigo['alias_Amigo']) ?>">
 
                             <button class="btn btn-translucent" type="submit" name="action" value="rechazar"><ion-icon name="trash-outline" style="color: red;"></ion-icon></button> <!-- Botón transparente borrar -->
                             
-                            <!--<?php/* echo '<pre>';
+                            <!-- <?php/* echo '<pre>';
                                 print_r($amigo);
-                                echo '</pre>'*/;?>-->
+                                echo '</pre>';*/?> -->
+
+                            <!-- Igualar el alias del amigo al seleccionado -->
+                            <?php/* echo $amigo['alias_Usuario'];
+                            $selectedFriendAlias = $amigo['alias_Usuario'];*/?>
                         </li>
                         <?php endif;?>
                     <?php endforeach; ?>
@@ -207,18 +231,18 @@ $conn->close();
 
         <!-- Ventana de chat -->
         <div class="col-9 d-flex flex-column">
-            <?php if ($selectedFriendAlias): 'UsuarioNuevo'?>
+            <?php if ($selectedFriendAlias == $amigo['alias_Usuario'] || $selectedFriendAlias == $amigo['alias_Amigo']):?>
                 <!-- Encabezado del chat -->
-                <!--<div class="bg-primary text-white text-center py-2">
-                    Conversación con <?= htmlspecialchars($solicitudes[$selectedFriendAlias]['nombre']) ?>
-                </div>-->
+                <div class="bg-primary text-white text-center py-2">
+                    Conversación con <?= htmlspecialchars($selectedFriendAlias) ?>
+                </div> 
 
                 <!-- Mensajes -->
                 <div class="flex-grow-1 bg-light overflow-auto p-3">
                     <!-- Mensajes de ejemplo -->
                     <div class="mb-3">
                         <div class="text-start">
-                            <span class="badge bg-secondary"> <?= htmlspecialchars($solicitudes[$selectedFriendAlias]['alias_Amigo']) ?> </span>
+                            <span class="badge bg-secondary"> <?= htmlspecialchars($selectedFriendAlias) ?> </span>
                             <p class="bg-white border rounded p-2 d-inline-block mt-1">Hola, ¿cómo estás?</p>
                         </div>
                     </div>
@@ -246,7 +270,6 @@ $conn->close();
             </div>
         </div>
     </div>
-
 
     <footer class="bg-dark text-white text-center py-3">
         <div class="container">

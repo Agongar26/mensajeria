@@ -13,6 +13,12 @@ if ($conn->connect_error) {
     die("Conexión fallida: " . $conn->connect_error);
 }
 
+// Verificar si el usuario ha iniciado sesión
+if (isset($_SESSION['alias'])) {
+    header("Location: index.php"); // Redirigir al index si está autenticado
+    exit();
+}
+
 // Inicializamos la variable $error
 $error = "";
 
