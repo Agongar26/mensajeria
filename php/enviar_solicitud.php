@@ -34,7 +34,7 @@ $aliasUsuario = $_SESSION['alias'];
 $aliasAmigo = strtoupper(trim($_POST['alias_Amigo']));
 
 // Validar que no se envíe una solicitud a sí mismo
-if ($aliasUsuario === $aliasAmigo) {
+if (strtoupper($aliasUsuario) === strtoupper($aliasAmigo)) {
     $_SESSION['alert'] = 'No puedes enviarte una solicitud a ti mismo.';
     header("Location: index.php");
     exit();
