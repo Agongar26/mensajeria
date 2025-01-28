@@ -30,7 +30,7 @@ CREATE TABLE Mensaje (
 CREATE TABLE EsAmigo (
     alias_Usuario VARCHAR(50) NOT NULL,
     alias_Amigo VARCHAR(50) NOT NULL,
-    estado ENUM('Espera', 'Aceptada', 'Rechazada') DEFAULT 'Espera',
+    estado ENUM('Espera', 'Aceptada', 'Rechazada', 'Eliminado') DEFAULT 'Espera',
     PRIMARY KEY (alias_Usuario, alias_Amigo),
     CONSTRAINT FK_AliasUsuario FOREIGN KEY (alias_Usuario) REFERENCES Usuario(alias) ON DELETE CASCADE,
     CONSTRAINT FK_AliasAmigo FOREIGN KEY (alias_Amigo) REFERENCES Usuario(alias) ON DELETE CASCADE

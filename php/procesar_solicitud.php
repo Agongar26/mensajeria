@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['alias_Usuario'], $_PO
     $action = $_POST['action'];
 
     // Determinar el nuevo estado según la acción
-    $nuevoEstado = ($action === 'aprobar') ? 'Aceptada' : 'Rechazada';
+    $nuevoEstado = ($action === 'aprobar') ? 'Aceptada' : (($action === 'rechazar') ? 'Rechazada' : 'Eliminado');
 
     // Actualizar el estado en la base de datos
     $updateQuery = "UPDATE esamigo 
@@ -49,6 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['alias_Usuario'], $_PO
     $conn->close();
 
     // Redirigir a la página principal (o donde quieras)
+    print_r($_POST['action']);
     header("Location: index.php");
     exit();
 } else {

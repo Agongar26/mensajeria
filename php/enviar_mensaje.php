@@ -20,17 +20,19 @@ if ($conn->connect_error) {
 }
 
 // Obtener lista de amigos del usuario
-$emisor = $POST['emisor'];
-$receptor = $POST['receptor'];
-$mensaje = $POST['message'];
-$fechaActual = date("Ymd_His")
+$emisor = $_POST['emisor'];
+$receptor = $_POST['receptor'];
+$mensaje = $_POST['message'];
+$fechaActual = date('Y-m-d H:i:s');
+$leido = false;
 $mensajeQuery = "INSERT INTO mensaje (emisor, receptor, mensaje, fechaHora, leido) VALUES (?, ?, ?, ?, ?)";
-$stmt = $conn->prepare($solicitudQuery);
-$stmt->bind_param("ssss", $emisor, $receptor, $mensaje, $fechaActual, "false");
+$stmt = $conn->prepare($mensajeQuery);
+$stmt->bind_param("sssss", $emisor, $receptor, $mensaje, $fechaActual, $leido);
 $stmt->execute();
-$result = $stmt->get_result();
-$solicitudes = [];
-while ($row = $result->fetch_assoc()) {
-    $solicitudes[] = $row;
-}
+
+$idAmigo = $_POST['idAmigo'];
+
+// Redirigir a la página principal junto al id del usuairo como ruta
+header("Location: index.php" . ($idAmigo ? "?alias_Amigo=" . urlencode($idAmigo) : ""));
+exit();
 ?>
