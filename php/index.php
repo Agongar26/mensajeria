@@ -55,17 +55,40 @@ $num = 1;
 $friends = [];
 $selectedFriendId = isset($_GET['alias_Amigo']) ? $_GET['alias_Amigo'] : 0;
 
- // Obtener mensajes entre el usuario y el amigo seleccionado
- $chatQuery = "SELECT emisor, receptor, mensaje, fechaHora
- FROM mensaje
- WHERE (emisor = ? AND receptor = ?)
-    OR (emisor = ? AND receptor = ?)
- ORDER BY fechaHora ASC";
+// Obtener mensajes entre el usuario y el amigo seleccionado
+$chatQuery = "SELECT emisor, receptor, mensaje, fechaHora
+FROM mensaje
+WHERE (emisor = ? AND receptor = ?)
+OR (emisor = ? AND receptor = ?)
+ORDER BY fechaHora ASC";
 $stmt3 = $conn->prepare($chatQuery);
 $stmt3->bind_param("ssss", $amigos[$selectedFriendId-1]['alias_Usuario'], $amigos[$selectedFriendId-1]['alias_Amigo'], $amigos[$selectedFriendId-1]['alias_Amigo'], $amigos[$selectedFriendId-1]['alias_Usuario']);
 $stmt3->execute();
 $chatResult = $stmt3->get_result();
 $mensajes = $chatResult->fetch_all(MYSQLI_ASSOC);
+
+// Cantidad de mensajes no leidos
+$MensajesNoLeidos = [];
+
+$leido = 123;
+
+// Obtener mensajes entre el usuario y el amigo seleccionado
+for($i=0; $i<(count($amigos)-1); $i++){
+    $mensajesQuery = "SELECT mensaje, leido
+    FROM mensaje
+    WHERE (emisor = ? AND receptor = ?)
+    OR (emisor = ? AND receptor = ?)
+    AND leido = ?";
+    $stmt4 = $conn->prepare($mensajesQuery);
+    $stmt4->bind_param("sssss", $amigos[$i]['alias_Usuario'], $_SESSION['alias'], $amigos[$i]['alias_Amigo'], $_SESSION['alias'], $leido);
+    $stmt4->execute();
+    $mensajesResult = $stmt4->get_result();
+    //$MensajesNoLeidos = $mensajesResult->fetch_all(MYSQLI_ASSOC);
+
+    while ($row3 = $mensajesResult->fetch_assoc()) {
+        $MensajesNoLeidos[] = $row3;
+    }
+}
 
 // Cerrar la conexión
 $stmt->close();
@@ -204,11 +227,14 @@ $conn->close();
                             <a href="?alias_Amigo=<?php echo $num ?>" id="<?= htmlspecialchars($amigo['alias_Usuario']) ?>" class="text-decoration-none text-dark"><?= htmlspecialchars($amigo['alias_Usuario']) ?></a>
                             <button id="<?php htmlspecialchars($amigo['alias_Usuario'])?>" class="btn btn-translucent text-black"><?php echo htmlspecialchars($amigo['alias_Usuario']) ?></button>
                             <!-- Alias del usuario y del amigo como campos ocultos -->
-                                <input type="hidden" name="alias_Usuario" value="<?= htmlspecialchars($amigo['alias_Usuario']) ?>">
-                                <input type="hidden" name="alias_Amigo" value="<?= htmlspecialchars($amigo['alias_Amigo']) ?>">
+                            <input type="hidden" name="alias_Usuario" value="<?= htmlspecialchars($amigo['alias_Usuario']) ?>">
+                            <input type="hidden" name="alias_Amigo" value="<?= htmlspecialchars($amigo['alias_Amigo']) ?>">
 
                             <button class="btn btn-translucent" type="submit" name="action" value="eliminar"><ion-icon name="trash-outline" style="color: red;"></ion-icon></button> <!-- Botón transparente borrar -->
 
+                            <?php if(count($MensajesNoLeidos) > 0): ?>
+                            <p><?php echo count($MensajesNoLeidos) . " mensajes no leídos"?></p>
+                            <?php endif;?>
                             <!-- Igualar el id y alias del usuario -->
                             <?php array_push($friends, ['id' => $num, 'alias' => $amigo['alias_Usuario']]);?>
                             
@@ -228,12 +254,15 @@ $conn->close();
             </ul>
             <?php print_r($friends)?>
             <?php print_r(" ------------------------------------------------------ ")?>
+            <?php print_r($solicitudes)?>
+            <?php print_r(" ------------------------------------------------------ ")?>
             <?php print_r($amigos)?>
             <?php print_r(" ------------------------------------------------------ ")?>
             <?php print_r($selectedFriendId)?>
             <?php print_r(" ------------------------------------------------------ ")?>
             <?php print_r($mensajes)?>
             <?php print_r(" ------------------------------------------------------ ")?>
+            <?php print_r($MensajesNoLeidos)?>
 
             <?php if(strtoupper($_SESSION['alias']) == $amigos[$selectedFriendId-1]['alias_Usuario']): ?>
             <input type="hidden" name="emisor" value="<?= htmlspecialchars($amigos[$selectedFriendId-1]['alias_Usuario']) ?>">
@@ -253,9 +282,25 @@ $conn->close();
         <div class="col-9 d-flex flex-column" style="max-height: calc(100vh - 70px);">
             <?php if ($selectedFriendId > 0):?> <!-- Comprobar que se haya seleccionado un amigo para hablar con él -->
                 <!-- Encabezado del chat -->
-                <div class="bg-primary text-white text-center py-2">
-                    Conversación con <?php echo $friends[$selectedFriendId-1]['alias']?>
-                </div> 
+                <div class="bg-primary text-white py-2 d-flex align-items-center">
+                <!-- Botón a la izquierda -->
+                <div class="me-auto ms-3">
+                    <a href="index.php" class="btn btn-danger">Cerrar conversación</a>
+                </div>
+                <!-- Texto centrado -->
+                <div class="me-auto">
+                    <p class="mb-0"><!-- Conversación con --><?php echo $friends[$selectedFriendId-1]['alias']?></p>
+                </div>
+                <div class="ma-auto me-3">
+                    <!-- Mostrar cantidad de mensajes no leídos -->
+                    <form action="actualizar_estado_mensajes.php" method="POST">
+                        <input type="hidden" name="alias_Usuario" value="<?= htmlspecialchars($amigo['alias_Usuario']) ?>">
+                        <input type="hidden" name="alias_Amigo" value="<?= htmlspecialchars($amigo['alias_Amigo']) ?>">
+                        <input type="hidden" name="idAmigo" value="<?= htmlspecialchars($selectedFriendId) ?>">
+                        <button class="btn btn-success fs-6 ms-3">Marcar leído</button>
+                    </form>
+                </div>
+            </div>
 
                 <!-- Mensajes -->
                 <div class="mensajes d-flex flex-column overflow-auto scrollable-div" style="max-height: calc(100vh - 100px);">
@@ -297,6 +342,7 @@ $conn->close();
                             <input type="hidden" name="receptor" value="<?= htmlspecialchars($amigos[$selectedFriendId-1]['alias_Usuario']) ?>">
                             <?php print_r("2.- Emisor: " . $amigos[$selectedFriendId-1]['alias_Amigo']) ?>
                             <?php print_r("2.- Receptor:" . $amigos[$selectedFriendId-1]['alias_Usuario']) ?>
+                            <?php print_r("2.- IdAmigo:" . $selectedFriendId) ?>
                             <?php endif;?>
 
                             <input type="hidden" name="idAmigo" value="<?= htmlspecialchars($selectedFriendId) ?>">
@@ -318,7 +364,7 @@ $conn->close();
 
     <footer class="bg-dark text-white text-center py-3">
         <div class="container">
-            <p>&copy; 2024 Alejandro González García. Todos los derechos reservados.</p>
+            <p>&copy; 2025 Alejandro González García. Todos los derechos reservados.</p>
             <p>
                 <a href="#" class="text-white">Política de Privacidad</a>
                 <a href="#" class="text-white">Términos de Servicio</a>

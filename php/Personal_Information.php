@@ -49,9 +49,12 @@ $fecha_nacimiento = htmlspecialchars($_SESSION['fecha_nacimiento']);
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
         </div>
         <div class="offcanvas-body">
-            <p>Esta acción no se puede deshacer</p>
-            <button class="btn btn-success" type="button">Si</button>
-            <button class="btn btn-danger" type="button" data-bs-dismiss="offcanvas">No</button>
+            <form action="eliminarCuenta.php" method="POST">
+                <p>Esta acción no se puede deshacer</p>
+                <input type="hidden" name="alias" value="<?= htmlspecialchars($_SESSION['alias']) ?>">
+                <button class="btn btn-success" type="submit">Si</button>
+                <button class="btn btn-danger" type="button" data-bs-dismiss="offcanvas">No</button>
+            </form>
         </div>
     </div>
 

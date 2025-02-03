@@ -80,16 +80,17 @@ if ($row['total'] > 0) {
     $row2 = $result2->fetch_assoc();
 
     if($row2['estado'] == 'Eliminado' || $row2['estado'] == 'Rechazada') {
+        //Cambiar el alias del usuario y del amigo para que se envíe bien la solicitud de amistad de nuuevo
         $updateEstado = "
         UPDATE esamigo
-        SET estado = 'Espera' 
+        SET estado = 'Espera', alias_Usuario = ?, alias_Amigo = ?
         WHERE 
         (alias_Usuario = ? AND alias_Amigo = ?) 
         OR 
         (alias_Usuario = ? AND alias_Amigo = ?);
         ";
         $stmt2 = $conn->prepare($updateEstado);
-        $stmt2->bind_param("ssss", $aliasUsuario, $aliasAmigo, $aliasAmigo, $aliasUsuario);
+        $stmt2->bind_param("ssssss", $aliasUsuario, $aliasAmigo, $aliasUsuario, $aliasAmigo, $aliasAmigo, $aliasUsuario);
         $stmt2->execute();
         $result2 = $stmt2->get_result();
     }
@@ -125,15 +126,3 @@ $conn->close();
 header("Location: index.php");
 exit();
 ?>
-
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="refresh" content="0;url=index.php">
-    <title>Enviar solicitud</title>
-</head>
-<body> 
-</body> 
-</html>
