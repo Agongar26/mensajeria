@@ -81,6 +81,7 @@ $conn->close();
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> <!-- bootstrap -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script> <!-- ioicon -->
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script> <!-- ioicon -->
+    <link rel="icon" href="../img/Logo.jpeg" type="image/x-icon"> <!-- Icono de la página -->
     <title>Aplicación de Mensajería</title>
 </head>
 <body>
@@ -181,7 +182,7 @@ $conn->close();
                         <?php if(strtoupper($amigo['alias_Usuario']) == strtoupper($_SESSION['alias'])): ?> <!-- Mostrar el alias_Amigo como amigo -->
                         <li class="list-group-item">
                             <a href="?alias_Amigo=<?php echo $num ?>" id="<?php echo $num ?>" class="text-decoration-none text-dark"><?= htmlspecialchars($amigo['alias_Amigo']) ?></a>
-                            <button id="<?php htmlspecialchars($amigo['alias_Amigo'])?>" class="btn btn-translucent text-black"><?php echo htmlspecialchars($amigo['alias_Amigo']) ?></button>
+
                             <!-- Alias del usuario y del amigo como campos ocultos -->
                             <input type="hidden" name="alias_Usuario" value="<?= htmlspecialchars($amigo['alias_Usuario']) ?>">
                             <input type="hidden" name="alias_Amigo" value="<?= htmlspecialchars($amigo['alias_Amigo']) ?>">
@@ -195,7 +196,7 @@ $conn->close();
                         <?php elseif(strtoupper($amigo['alias_Amigo']) == strtoupper($_SESSION['alias'])) : ?> <!-- Mostrar el alias_Usuario como amigo -->
                         <li class="list-group-item">
                             <a href="?alias_Amigo=<?php echo $num ?>" id="<?= htmlspecialchars($amigo['alias_Usuario']) ?>" class="text-decoration-none text-dark"><?= htmlspecialchars($amigo['alias_Usuario']) ?></a>
-                            <button id="<?php htmlspecialchars($amigo['alias_Usuario'])?>" class="btn btn-translucent text-black"><?php echo htmlspecialchars($amigo['alias_Usuario']) ?></button>
+                            
                             <!-- Alias del usuario y del amigo como campos ocultos -->
                             <input type="hidden" name="alias_Usuario" value="<?= htmlspecialchars($amigo['alias_Usuario']) ?>">
                             <input type="hidden" name="alias_Amigo" value="<?= htmlspecialchars($amigo['alias_Amigo']) ?>">
@@ -229,7 +230,7 @@ $conn->close();
                     <p class="mb-0"><!-- Conversación con --><?php echo $friends[$selectedFriendId-1]['alias']?></p>
                 </div>
                 <div class="ma-auto me-3">
-                    <!-- Mostrar cantidad de mensajes no leídos -->
+                    <!-- Marcar mensajes como leídos -->
                     <form action="actualizar_estado_mensajes.php" method="POST">
                         <input type="hidden" name="alias_Usuario" value="<?= htmlspecialchars($amigo['alias_Usuario']) ?>">
                         <input type="hidden" name="alias_Amigo" value="<?= htmlspecialchars($amigo['alias_Amigo']) ?>">
@@ -240,7 +241,7 @@ $conn->close();
             </div>
 
                 <!-- Mensajes -->
-                <div class="mensajes d-flex flex-column overflow-auto scrollable-div" style="max-height: calc(100vh - 100px);">
+                <div class="mensajes d-flex flex-column overflow-auto scrollable-div" style="min-height: calc(100vh - 193px); max-height: calc(100vh - 100px);">
                     <!-- Bucle que muestra todos los mensajes del chat -->
                     <?php for($i=0; $i<count($mensajes); $i++): ?>
                     <div class="flex-grow-1 bg-light p-3">

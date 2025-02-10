@@ -24,6 +24,7 @@ $fecha_nacimiento = htmlspecialchars($_SESSION['fecha_nacimiento']);
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> <!-- bootstrap -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script> <!-- ioicon -->
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script> <!-- ioicon -->
+    <link rel="icon" href="../img/Logo.jpeg" type="image/x-icon"> <!-- Icono de la página -->
     <title>Formulario de inicio de sesión</title>
 </head>
 <body>
