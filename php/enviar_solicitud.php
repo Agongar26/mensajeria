@@ -122,7 +122,7 @@ if ($stmt->execute()) {
 $stmt->close();
 $conn->close();
 
-// Redirigir a index.php con el mensaje
+// Redirigir a index.php 
 header("Location: index.php");
 exit();
 ?>

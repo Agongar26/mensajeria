@@ -19,7 +19,7 @@ if ($conn->connect_error) {
     die("Conexión fallida: " . $conn->connect_error);
 }
 
-// Obtener lista de amigos del usuario
+// Consulta para agregar el mensaje en la base de datos
 $emisor = $_POST['emisor'];
 $receptor = $_POST['receptor'];
 $mensaje = $_POST['message'];
@@ -30,6 +30,7 @@ $stmt = $conn->prepare($mensajeQuery);
 $stmt->bind_param("sssss", $emisor, $receptor, $mensaje, $fechaActual, $leido);
 $stmt->execute();
 
+// Id del amigo seleccionado
 $idAmigo = $_POST['idAmigo'];
 
 // Redirigir a la página principal junto al id del usuairo como ruta

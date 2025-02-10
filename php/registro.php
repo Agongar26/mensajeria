@@ -5,7 +5,7 @@ session_start(); // Inicia la sesión
 $servername = "localhost";
 $username = "root";
 $password = "";
-$dbname = "mensajeriaweb";  // Cambiar a la nueva base de datos "mensajeriaweb"
+$dbname = "mensajeriaweb";  // Nombre de la base de datos"
 
 // Crear conexión
 $conn = new mysqli($servername, $username, $password, $dbname);

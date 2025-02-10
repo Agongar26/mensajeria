@@ -48,12 +48,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['alias_Usuario'], $_PO
     $stmt->close();
     $conn->close();
 
-    // Redirigir a la página principal (o donde quieras)
+    // Redirigir a la página principal
     print_r($_POST['action']);
     header("Location: index.php");
     exit();
 } else {
-    // Redirigir con un mensaje de error si faltan datos
+    // Redirigir a la página principal con un mensaje de error si faltan datos
     $_SESSION['mensaje'] = "Datos incompletos para procesar la solicitud.";
     header("Location: index.php");
     exit();

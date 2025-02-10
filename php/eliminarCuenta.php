@@ -21,6 +21,7 @@ if ($conn->connect_error) {
 
 $alias = $_POST['alias'];
 
+// Consulta para eliminar la cuenta
 $Query = "DELETE 
         FROM usuario
         WHERE alias = ?";
@@ -28,7 +29,7 @@ $stmt = $conn->prepare($Query);
 $stmt->bind_param("s", $alias);
 $stmt->execute();
 
-// Redirigir a la página principal junto al id del usuairo como ruta
+// Redirigir a la página de cerrar sesión
 header("Location: logout.php");
 exit();
 ?>

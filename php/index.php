@@ -51,7 +51,7 @@ while ($row2 = $result2->fetch_assoc()) {
 //Para recoger el id de los amigos
 $num = 1;
 
-// Simulación de datos de ejemplo
+// Almacenar lista de amigos
 $friends = [];
 $selectedFriendId = isset($_GET['alias_Amigo']) ? $_GET['alias_Amigo'] : 0;
 
@@ -66,29 +66,6 @@ $stmt3->bind_param("ssss", $amigos[$selectedFriendId-1]['alias_Usuario'], $amigo
 $stmt3->execute();
 $chatResult = $stmt3->get_result();
 $mensajes = $chatResult->fetch_all(MYSQLI_ASSOC);
-
-// Cantidad de mensajes no leidos
-$MensajesNoLeidos = [];
-
-$leido = 123;
-
-// Obtener mensajes entre el usuario y el amigo seleccionado
-for($i=0; $i<(count($amigos)-1); $i++){
-    $mensajesQuery = "SELECT mensaje, leido
-    FROM mensaje
-    WHERE (emisor = ? AND receptor = ?)
-    OR (emisor = ? AND receptor = ?)
-    AND leido = ?";
-    $stmt4 = $conn->prepare($mensajesQuery);
-    $stmt4->bind_param("sssss", $amigos[$i]['alias_Usuario'], $_SESSION['alias'], $amigos[$i]['alias_Amigo'], $_SESSION['alias'], $leido);
-    $stmt4->execute();
-    $mensajesResult = $stmt4->get_result();
-    //$MensajesNoLeidos = $mensajesResult->fetch_all(MYSQLI_ASSOC);
-
-    while ($row3 = $mensajesResult->fetch_assoc()) {
-        $MensajesNoLeidos[] = $row3;
-    }
-}
 
 // Cerrar la conexión
 $stmt->close();
@@ -214,13 +191,6 @@ $conn->close();
                             <!-- Igualar el id y alias del amigo -->
                             <?php array_push($friends, ['id' => $num, 'alias' => $amigo['alias_Amigo']]);?>
 
-                            <!-- <?/*php echo '<pre>';
-                                print_r($amigo);
-                                echo '</pre>';*/?> -->
-
-                            <!-- Igualar el alias del amigo al seleccionado -->
-                            <?/*php echo $amigo['alias_Amigo'];
-                            $selectedFriendAlias = $amigo['alias_Amigo'];*/?>
                         </li>
                         <?php elseif(strtoupper($amigo['alias_Amigo']) == strtoupper($_SESSION['alias'])) : ?> <!-- Mostrar el alias_Usuario como amigo -->
                         <li class="list-group-item">
@@ -232,19 +202,9 @@ $conn->close();
 
                             <button class="btn btn-translucent" type="submit" name="action" value="eliminar"><ion-icon name="trash-outline" style="color: red;"></ion-icon></button> <!-- Botón transparente borrar -->
 
-                            <?php if(count($MensajesNoLeidos) > 0): ?>
-                            <p><?php echo count($MensajesNoLeidos) . " mensajes no leídos"?></p>
-                            <?php endif;?>
                             <!-- Igualar el id y alias del usuario -->
                             <?php array_push($friends, ['id' => $num, 'alias' => $amigo['alias_Usuario']]);?>
                             
-                            <!-- <?php/* echo '<pre>';
-                                print_r($amigo);
-                                echo '</pre>';*/?> -->
-
-                            <!-- Igualar el alias del amigo al seleccionado -->
-                            <?php/* echo $amigo['alias_Usuario'];
-                            $selectedFriendAlias = $amigo['alias_Usuario'];*/?>
                         </li>
                         <?php endif;?>
                     <?php 
@@ -252,29 +212,6 @@ $conn->close();
                     endforeach; ?>
                 </form>
             </ul>
-            <?php print_r($friends)?>
-            <?php print_r(" ------------------------------------------------------ ")?>
-            <?php print_r($solicitudes)?>
-            <?php print_r(" ------------------------------------------------------ ")?>
-            <?php print_r($amigos)?>
-            <?php print_r(" ------------------------------------------------------ ")?>
-            <?php print_r($selectedFriendId)?>
-            <?php print_r(" ------------------------------------------------------ ")?>
-            <?php print_r($mensajes)?>
-            <?php print_r(" ------------------------------------------------------ ")?>
-            <?php print_r($MensajesNoLeidos)?>
-
-            <?php if(strtoupper($_SESSION['alias']) == $amigos[$selectedFriendId-1]['alias_Usuario']): ?>
-            <input type="hidden" name="emisor" value="<?= htmlspecialchars($amigos[$selectedFriendId-1]['alias_Usuario']) ?>">
-            <input type="hidden" name="receptor" value="<?= htmlspecialchars($amigos[$selectedFriendId-1]['alias_Amigo']) ?>">
-            <?php print_r("Alias usuario:" . $amigos[$selectedFriendId-1]['alias_Usuario']) ?>
-            <?php print_r("Alias amigo: " . $amigos[$selectedFriendId-1]['alias_Amigo']) ?>
-            <?php else: ?>
-            <input type="hidden" name="emisor" value="<?= htmlspecialchars($amigos[$selectedFriendId-1]['alias_Amigo']) ?>">
-            <input type="hidden" name="receptor" value="<?= htmlspecialchars($amigos[$selectedFriendId-1]['alias_Usuario']) ?>">
-            <?php print_r("2.- Alias usuario: " . $amigos[$selectedFriendId-1]['alias_Amigo']) ?>
-            <?php print_r("2.- Alias amigo:" . $amigos[$selectedFriendId-1]['alias_Usuario']) ?>
-            <?php endif;?>
 
         </div>
 
@@ -307,7 +244,7 @@ $conn->close();
                     <!-- Bucle que muestra todos los mensajes del chat -->
                     <?php for($i=0; $i<count($mensajes); $i++): ?>
                     <div class="flex-grow-1 bg-light p-3">
-                        <!-- Mensajes de ejemplo -->
+                        <!-- Mostrar los mensajes que recibe el usuario registrado -->
                         <?php if($mensajes[$i]['receptor'] === strtoupper($_SESSION['alias'])): ?>
                         <div class="mb-3">
                             <div class="text-start">
@@ -316,6 +253,7 @@ $conn->close();
                                 <?php echo date("H:i", strtotime($mensajes[$i]['fechaHora'])); ?>
                             </div>
                         </div>
+                        <!-- Mostrar los mensajes que envía el usuario registrado -->
                         <?php else: ?>
                         <div class="mb-3">
                             <div class="text-end">
@@ -335,14 +273,9 @@ $conn->close();
                             <?php if(strtoupper($_SESSION['alias']) == $amigos[$selectedFriendId-1]['alias_Usuario']): ?>
                             <input type="hidden" name="emisor" value="<?= htmlspecialchars($amigos[$selectedFriendId-1]['alias_Usuario']) ?>">
                             <input type="hidden" name="receptor" value="<?= htmlspecialchars($amigos[$selectedFriendId-1]['alias_Amigo']) ?>">
-                            <?php print_r("Emisor:" . $amigos[$selectedFriendId-1]['alias_Usuario']) ?>
-                            <?php print_r("Receptor: " . $amigos[$selectedFriendId-1]['alias_Amigo']) ?>
                             <?php else: ?>
                             <input type="hidden" name="emisor" value="<?= htmlspecialchars($amigos[$selectedFriendId-1]['alias_Amigo']) ?>">
                             <input type="hidden" name="receptor" value="<?= htmlspecialchars($amigos[$selectedFriendId-1]['alias_Usuario']) ?>">
-                            <?php print_r("2.- Emisor: " . $amigos[$selectedFriendId-1]['alias_Amigo']) ?>
-                            <?php print_r("2.- Receptor:" . $amigos[$selectedFriendId-1]['alias_Usuario']) ?>
-                            <?php print_r("2.- IdAmigo:" . $selectedFriendId) ?>
                             <?php endif;?>
 
                             <input type="hidden" name="idAmigo" value="<?= htmlspecialchars($selectedFriendId) ?>">
