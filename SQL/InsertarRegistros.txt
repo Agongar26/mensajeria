@@ -1,5 +1,5 @@
 -- Usar la base de datos
-USE usuarios;
+USE mensajeriaweb;
 
 -- Insertar varios registros en la tabla 'usuario'
 INSERT INTO usuario (alias, password, nombre, apellidos, fecha_nacimiento)
